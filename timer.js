@@ -1,88 +1,81 @@
-let doi = localStorage.dateOfInterest;
+let udoi = localStorage.dateOfInterest;
 let eoi = localStorage.eventOfInterest;
 
-if(!doi){
-    eoi = prompt(`Enter the event: `, `Balfron 10k`);
-    doi = prompt(`Enter a date of interest: `, `2025-05-04T11:00:00`);
 
-    localStorage.dateOfInterest = doi;
+if(!udoi){
+    
+    /*if retreived udoi is empty, ask the user for an event and date, 
+    and then assign these to localStorage variables*/
+    eoi = prompt(`Enter the event: `, `Tea Time`);
+    udoi = prompt(`Enter a date of interest: `, `2025-04-04T19:00:00+01:00`);
+
+    localStorage.dateOfInterest = udoi;
     localStorage.eventOfInterest = eoi;
 }
 
+let daysElement = document.getElementById("days");
+let hoursElement = document.getElementById("hours");
+let minutesElement = document.getElementById("minutes");
+let secondsElement = document.getElementById("seconds");
+    
 let eventTitleElement = document.getElementById("timer-title");
-eventTitleElement.innerHTML = "<h1>"+ eoi + "</h1>";
+eventTitleElement.innerHTML = "<h1>"+ eoi + " on " + udoi + "</h1>";
 
-setInterval(calculateTimeUntil, 1000, doi);
+/* call the calcualateTimeUntil() function as a call back function 
+from within a setInterval() function call, passing to it the udoi.*/
+setInterval(calculateTimeUntil, 1000, udoi);
 
 function calculateTimeUntil(dateOfInterest){
-    let difference = new Date(new Date(dateOfInterest) - new Date());
-    let daysElement = document.getElementById("days");
-    let hoursElement = document.getElementById("hours");
-    let minutesElement = document.getElementById("minutes");
-    let secondsElement = document.getElementById("seconds");
+    /*The calculateTimeUntil() function takes a single argument, namely
+    the dateOfInterest. This is a date object that the user has passed 
+    that is... the date of interest! The function subtracts todays date 
+    from the udoi, and then proceeds to split out days, hours, minutes 
+    and time*/
     
-    let daysToGo;
-    let hoursToGo;
-    let minutesToGo;
-    let secondsToGo;
+    let doi = new Date(dateOfInterest).getTime();
+    let todaysDate = new Date().getTime();
+
+    let difference = new Date(doi - todaysDate);
+    let differencems = parseInt(difference.getTime().toString())
     
-    daysToGo = getNumberOfDays(difference.getMonth(), difference.getDate());
+    const completeDayInms = 24*60*60*1000;
+    const completeHourInms = 60*60*1000;
+    const completeMinInms = 60*1000;
+    const completeSecInms = 1000;
+
+    let absoluteDaysToGo;
+    let absoluteHoursToGo;
+    let absoluteMinutesToGo;
+    let absoluteSecondsToGo;
+
     
-    if (difference.getHours()>9){
-        hoursToGo = difference.getHours().toString();
-    }else{
-        hoursToGo = "0" + difference.getHours().toString();
-    }
-    
-    if (difference.getMinutes()>9){
-        minutesToGo = difference.getMinutes().toString();
-    }else{
-        minutesToGo = "0" + difference.getMinutes().toString();
-    }
+    absoluteDaysToGo = Math.floor(differencems/completeDayInms)
+    absoluteHoursToGo = Math.floor(differencems/completeHourInms);
+    absoluteMinutesToGo = Math.floor(differencems/completeMinInms);
+    absoluteSecondsToGo = Math.floor(differencems/completeSecInms);
 
-    if (difference.getSeconds()>9){
-        secondsToGo = difference.getSeconds().toString();
-    }else{
-        secondsToGo = "0" + difference.getSeconds().toString();
-    }
-
-    function getNumberOfDays(currentMonth, dayOfCurrentMonth){
-        daysInTheMonth = {
-            0: 31,  //Jan
-            1: 28,  //Feb
-            2: 31,  //.. 
-            3: 30,  //..
-            4: 31,  //..
-            5: 30,  //..
-            6: 31,  //..
-            7: 31,  //..
-            8: 30,  //..
-            9: 31,  //..
-            10: 30,  //Nov
-            11: 31  //Dec
-        }
-        
-        let daysElapsedSoFar = 0;
-
-        if (currentMonth>0){    
-            for (month in daysInTheMonth){
-                if(month < currentMonth){
-                    daysElapsedSoFar += daysInTheMonth[month];
-                }
-            }
-        }
-
-        daysElapsedSoFar += dayOfCurrentMonth-1;
-
-        if (daysElapsedSoFar>9){
-            return daysElapsedSoFar.toString();
-        } else {
-            return "0" + daysElapsedSoFar.toString();
-        }
+    if (absoluteDaysToGo > 0){
+        remainderHoursToGo = absoluteHoursToGo % (absoluteDaysToGo*24);
+    } else {
+        remainderHoursToGo = absoluteHoursToGo;
     }
 
-    daysElement.innerHTML = daysToGo + ` <br>days`;
-    hoursElement.innerHTML = hoursToGo + ` <br>hours`;
-    minutesElement.innerHTML = minutesToGo + ` <br>minutes`;
-    secondsElement.innerHTML = secondsToGo + ` <br>seconds`;
+    if (absoluteHoursToGo > 0){
+        remainderMinutesToGo = absoluteMinutesToGo % (absoluteHoursToGo*60);
+    } else {
+        remainderMinutesToGo = absoluteMinutesToGo;
+    }
+
+    if (absoluteMinutesToGo > 0){
+        remainderSecondsToGo = absoluteSecondsToGo % (absoluteMinutesToGo*60);
+    } else {
+        remainderSecondsToGo = absoluteSecondsToGo;
+    }
+    
+    
+    // Display the timer on the screen
+    daysElement.innerHTML = absoluteDaysToGo + ` <br>days`;
+    hoursElement.innerHTML = remainderHoursToGo + ` <br>hours`;
+    minutesElement.innerHTML = remainderMinutesToGo + ` <br>minutes`;
+    secondsElement.innerHTML = remainderSecondsToGo + ` <br>seconds`;
 }
